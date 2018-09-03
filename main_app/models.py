@@ -1,9 +1,10 @@
 from django.db import models
 
 class Doctor(models.Model):
-    doctor_id = models.AutoField(primary_key = True)
+    # doctor_id = models.AutoField()
     first_name = models.CharField(max_length = 50)
     last_name = models.CharField(max_length = 50)
+    email = models.EmailField(unique = True)
     age = models.IntegerField()
     qualification = models.TextField()
     address = models.TextField()
@@ -28,9 +29,10 @@ class Patient(models.Model):
         ('AB-', 'AB-')
     )
 
-    patient_id = models.AutoField(primary_key = True)
+    # patient_id = models.AutoField()
     first_name = models.CharField(max_length = 50)
     last_name = models.CharField(max_length = 50)
+    email = models.EmailField(unique = True)
     age = models.IntegerField()
     doctor = models.ForeignKey(Doctor, null = True, on_delete = models.SET_NULL)
     gender = models.CharField(max_length = 6, choices = gender_choices)
