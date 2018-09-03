@@ -1,0 +1,8 @@
+[superusers]
+name = healthset
+password = health_123
+
+[db]
+name = healthset
+user = healthset
+password = healthset
