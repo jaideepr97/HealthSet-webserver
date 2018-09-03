@@ -15,8 +15,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, re_path, include
+from .settings import VERSION_LIST
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    re_path('api/(?P<version>(v1|v2))/', include('main_app.urls'))
+    re_path('api/(?P<version>({}))/'.format(VERSION_LIST), include('main_app.urls'))
 ]
