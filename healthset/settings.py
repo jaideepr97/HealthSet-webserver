@@ -27,7 +27,7 @@ SECRET_KEY = '5!y2%dlb(j(td*f5x@)hccvwoex#6h0(l8u*%brb6$e*79r-dj'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['hsdj-env.e4urgp3due.ap-south-1.elasticbeanstalk.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['hss-env.ckspj8qcqv.ap-south-1.elasticbeanstalk.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
