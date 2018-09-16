@@ -45,3 +45,12 @@ class Patient(models.Model):
 
     class Meta:
         db_table = "patient"
+
+class Chat(models.Model):
+    doctor = models.ForeignKey(Doctor, on_delete = models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete = models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add = True)
+    text = models.CharField(max_length = 200)
+
+    class Meta:
+        db_table = "chat"

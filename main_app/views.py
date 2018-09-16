@@ -3,12 +3,12 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
 from rest_framework.parsers import JSONParser
-from .models import Patient
-from .serializers import PatientSerializer, DoctorSerializer
+from .models import Patient, Doctor, Chat
+from .serializers import PatientSerializer, DoctorSerializer, ChatSerializer
 
-class ListPatientsView(generics.ListAPIView):
-    queryset = Patient.objects.all()
-    serializer_class = PatientSerializer
+# class ListPatientsView(generics.ListAPIView):
+#     queryset = Patient.objects.all()
+#     serializer_class = PatientSerializer
 
 @csrf_exempt
 def patientOp(request, version):
@@ -53,3 +53,15 @@ def doctorOp(request, version):
         response_data['status'] = 'failure'
         response_data['message'] = 'API version does not exist'
         return JsonResponse(response_data)
+
+# @csrf_exempt
+# def chatOp(request, version):
+#     if version == 'v1':
+#         if request.method == 'POST':
+#             data = JSONParser().parse(request)
+#             serializer = ChatSerializer(Chat.objects.filter(doctor = data.get('doctor'), patient = data.get('patient')))
+#             print(Chat.objects.filter(doctor = data.get('doctor'), patient = data.get('patient')))
+#             response_data = {}
+#             response_data['status'] = 'success'
+#             response_data['data'] = serializer.data
+#             return JsonResponse(response_data, safe = False)

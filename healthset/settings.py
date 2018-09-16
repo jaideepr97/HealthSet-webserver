@@ -112,11 +112,9 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'ebdb',
-            'USER':'healthset',
-            'PASSWORD':'healthset',
-            'HOST':'trialdbinstance.cmgqahvpg1hv.ap-south-1.rds.amazonaws.com',
-            'PORT':'3306'
+            'OPTIONS': {
+                'read_default_file': os.path.join(BASE_DIR, 'my.cnf'),
+            },
         }
     }
 
