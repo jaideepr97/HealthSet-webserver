@@ -108,17 +108,18 @@ if 'RDS_HOSTNAME' in os.environ:
             'PORT':os.environ['RDS_PORT']
         }
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'healthset',
-            'USER':'healthset',
-            'PASSWORD':'healthset',
-            'HOST':'localhost',
-            'PORT':''
-        }
-    }
+    print("WORKEDWORKEDWORKEDWORKEDWORKEDWORKED")
+# else:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.mysql',
+#             'NAME': 'healthset',
+#             'USER':'healthset',
+#             'PASSWORD':'healthset',
+#             'HOST':'localhost',
+#             'PORT':''
+#         }
+#     }
 
 
 # Password validation
