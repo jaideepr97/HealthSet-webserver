@@ -108,18 +108,17 @@ if 'RDS_HOSTNAME' in os.environ:
             'PORT':os.environ['RDS_PORT']
         }
     }
-    print("WORKEDWORKEDWORKEDWORKEDWORKEDWORKED")
-# else:
-#     DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.mysql',
-#             'NAME': 'healthset',
-#             'USER':'healthset',
-#             'PASSWORD':'healthset',
-#             'HOST':'localhost',
-#             'PORT':''
-#         }
-#     }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'ebdb',
+            'USER':'healthset',
+            'PASSWORD':'healthset',
+            'HOST':'trialdbinstance.cmgqahvpg1hv.ap-south-1.rds.amazonaws.com',
+            'PORT':'3306'
+        }
+    }
 
 
 # Password validation
