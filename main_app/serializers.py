@@ -9,4 +9,4 @@ class PatientSerializer(serializers.ModelSerializer):
 class DoctorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Doctor
-        fields = ("id", "first_name", "last_name", "email", "age", "qualification", "address", "number")
+        fields = ("id", "first_name", "last_name", "email", "age", "experience", "qualification", "address", "number", "fees", "gender")
