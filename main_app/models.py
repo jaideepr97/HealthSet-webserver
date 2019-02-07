@@ -2,16 +2,17 @@ from django.db import models
 
 class Doctor(models.Model):
     # doctor_id = models.AutoField()
-    first_name = models.CharField(max_length = 50, default='') #done
-    last_name = models.CharField(max_length = 50, default='')  #done
+    first_name = models.CharField(max_length = 50, default='')
+    last_name = models.CharField(max_length = 50, default='') 
     email = models.EmailField(unique = True, default='')
-    age = models.IntegerField(default=0)                    #done
-    experience = models.IntegerField(default=0)             #done
-    qualification = models.TextField(default='')             #done
+    password = models.CharField(max_length = 50, default='')
+    age = models.IntegerField(default=0)                   
+    experience = models.IntegerField(default=0)            
+    qualification = models.TextField(default='')            
     address = models.TextField(default='')
-    number = models.IntegerField(default=0)                 #done
-    fees = models.IntegerField(default=0)                   #done
-    gender = models.CharField(max_length = 50, default='')     #done
+    number = models.IntegerField(default=0)                
+    fees = models.IntegerField(default=0)                  
+    gender = models.CharField(max_length = 50, default='')    
 
     class Meta:
         db_table = "doctor"
@@ -36,6 +37,7 @@ class Patient(models.Model):
     first_name = models.CharField(max_length = 50, default='')
     last_name = models.CharField(max_length = 50, default='')
     email = models.EmailField(unique = True, default='')
+    password = models.CharField(max_length = 50, default='')
     age = models.IntegerField(default=0)
     doctor = models.ForeignKey(Doctor, null = True, on_delete = models.SET_NULL)
     gender = models.CharField(max_length = 6, default='')
