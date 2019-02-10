@@ -1,10 +1,14 @@
 from django.urls import path
-from .views import ListPatientsView, patientOp, doctorOp, authenticateUser
+from .views import getPatient, addPatient, getDoctor, addDoctor, authenticateUser, getAllDoctors, getChats, addChat
 
 
 urlpatterns = [
-    # path('patients/', ListPatientsView.as_view(), name="patients-all")
-    path('patients/', patientOp),
-    path('doctors/', doctorOp),
-    path('authenticate/', authenticateUser)
+    path('getPatient/', getPatient),
+    path('addPatient/', addPatient),
+    path('getDoctor/', getDoctor),
+    path('addDoctor/', addDoctor),
+    path('getAllDoctors/', getAllDoctors),
+    path('authenticate/', authenticateUser),
+    path('getChats/', getChats),
+    path('addChat/', addChat),
 ]

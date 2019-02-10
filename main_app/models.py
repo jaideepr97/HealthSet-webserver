@@ -1,52 +1,54 @@
 from django.db import models
 
 class Doctor(models.Model):
-    # doctor_id = models.AutoField()
-    first_name = models.CharField(max_length = 50, default='')
-    last_name = models.CharField(max_length = 50, default='') 
-    email = models.EmailField(unique = True, default='')
-    password = models.CharField(max_length = 50, default='')
-    age = models.IntegerField(default=0)                   
-    experience = models.IntegerField(default=0)            
-    qualification = models.TextField(default='')            
-    address = models.TextField(default='')
-    number = models.IntegerField(default=0)                
-    fees = models.IntegerField(default=0)                  
-    gender = models.CharField(max_length = 50, default='')    
+    patients = models.CharField(max_length = 100, default = '') #comma separated id's
+    first_name = models.CharField(max_length = 50, default = '')
+    last_name = models.CharField(max_length = 50, default = '') 
+    email = models.EmailField(unique = True, default = '')
+    password = models.CharField(max_length = 50, default = '')
+    age = models.IntegerField(default = 0)                   
+    experience = models.IntegerField(default = 0)            
+    qualification = models.TextField(default = '')            
+    address = models.TextField(default = '')
+    number = models.IntegerField(default = 0)                
+    fees = models.IntegerField(default = 0)                  
+    gender = models.CharField(max_length = 50, default = '')    
+
+    def __str__(self):
+        return self.email
 
     class Meta:
         db_table = "doctor"
 
 class Patient(models.Model):
-    gender_choices = (
-        ('Male', 'Male'),
-        ('Female', 'Female')
-    )
-    blood_group_choices = (
-        ('A+', 'A+'),
-        ('A-', 'A-'),
-        ('B+', 'B+'),
-        ('B-', 'B-'),
-        ('O+', 'O+'),
-        ('O-', 'O-'),
-        ('AB+', 'AB+'),
-        ('AB-', 'AB-')
-    )
+    doctors = models.CharField(max_length = 100, default = '') #comma separated id's
+    first_name = models.CharField(max_length = 50, default = '')
+    last_name = models.CharField(max_length = 50, default = '')
+    email = models.EmailField(unique = True, default = '')
+    password = models.CharField(max_length = 50, default = '')
+    age = models.IntegerField(default = 0)
+    gender = models.CharField(max_length = 6, default = '')
+    blood_group = models.CharField(max_length = 3, default = '')
+    weight = models.IntegerField(default = 0)
+    height = models.IntegerField(default = 0)
+    diabetes = models.BooleanField(default = False)
+    smoker = models.BooleanField(default = False)
+    drinker = models.BooleanField(default = False)
 
-    # patient_id = models.AutoField()
-    first_name = models.CharField(max_length = 50, default='')
-    last_name = models.CharField(max_length = 50, default='')
-    email = models.EmailField(unique = True, default='')
-    password = models.CharField(max_length = 50, default='')
-    age = models.IntegerField(default=0)
-    doctor = models.ForeignKey(Doctor, null = True, on_delete = models.SET_NULL)
-    gender = models.CharField(max_length = 6, default='')
-    blood_group = models.CharField(max_length = 3, default='')
-    weight = models.IntegerField(default=0)
-    height = models.IntegerField(default=0)
-    diabetes = models.BooleanField(default=False)
-    smoker = models.BooleanField(default=False)
-    drinker = models.BooleanField(default=False)
+    def __str__(self):
+        return self.email
 
     class Meta:
         db_table = "patient"
+
+class Chat(models.Model):
+    doctor_id = models.IntegerField(default = 0)
+    patient_id = models.IntegerField(default = 0)
+    text = models.CharField(max_length = 100, default = '')
+    sender = models.IntegerField(default = 0)
+
+    def __str__(self):
+        return self.id
+
+    class Meta:
+        db_table = "chat"
