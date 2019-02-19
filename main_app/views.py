@@ -7,6 +7,8 @@ from .models import Patient, Doctor, Chat, Data
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.db import IntegrityError
+import heartpy as hp
+import urllib.request
 
 @csrf_exempt
 def authenticateUser(request, version):
@@ -22,7 +24,7 @@ def authenticateUser(request, version):
             return JsonResponse(response_data, safe = False)
         else:
             response_data['status'] = "error"
-            response_data['message'] = "invalid request"    
+            response_data['message'] = "invalid request"
         return JsonResponse(response_data)
     else:
         response_data['status'] = 'failure'
@@ -40,7 +42,7 @@ def getPatient(request, version):
             response_data['data'] = list(data.values())
         else:
             response_data['status'] = "error"
-            response_data['message'] = "invalid request"    
+            response_data['message'] = "invalid request"
         return JsonResponse(response_data)
     else:
         response_data['status'] = 'failure'
@@ -58,7 +60,7 @@ def getDoctor(request, version):
             response_data['data'] = list(data.values())
         else:
             response_data['status'] = "error"
-            response_data['message'] = "invalid request"    
+            response_data['message'] = "invalid request"
         return JsonResponse(response_data)
     else:
         response_data['status'] = 'failure'
@@ -77,7 +79,7 @@ def addPatient(request, version):
                 p.save()
                 response_data['status'] = "success"
                 response_data['data'] = p.id
-            except IntegrityError as e: 
+            except IntegrityError as e:
                 response_data['status'] = "error"
                 response_data['message'] = "account exists"
         else:
@@ -101,12 +103,12 @@ def addDoctor(request, version):
                 d.save()
                 response_data['status'] = "success"
                 response_data['data'] = d.id
-            except IntegrityError as e: 
+            except IntegrityError as e:
                 response_data['status'] = "error"
                 response_data['message'] = "account exists"
         else:
             response_data['status'] = "error"
-            response_data['message'] = "invalid request"   
+            response_data['message'] = "invalid request"
         return JsonResponse(response_data)
     else:
         response_data['status'] = 'failure'
@@ -123,7 +125,7 @@ def getAllDoctors(request, version):
             response_data['data'] = list(data.values())
         else:
             response_data['status'] = "error"
-            response_data['message'] = "invalid request"    
+            response_data['message'] = "invalid request"
         return JsonResponse(response_data)
     else:
         response_data['status'] = 'failure'
@@ -141,7 +143,7 @@ def addChat(request, version):
             response_data['data'] = c.id
         else:
             response_data['status'] = "error"
-            response_data['message'] = "invalid request"   
+            response_data['message'] = "invalid request"
         return JsonResponse(response_data)
     else:
         response_data['status'] = 'failure'
@@ -157,12 +159,12 @@ def getChats(request, version):
                 data = Chat.objects.filter(doctor_id = request.GET["id"])
                 response_data['status'] = "success"
                 response_data['data'] = list(data.values())
-                return JsonResponse(response_data) 
+                return JsonResponse(response_data)
             elif request.GET["user_type"] == "patient":
                 data = Chat.objects.filter(patient_id = request.GET["id"])
                 response_data['status'] = "success"
                 response_data['data'] = list(data.values())
-                return JsonResponse(response_data) 
+                return JsonResponse(response_data)
             else:
                 response_data = {}
                 response_data['status'] = 'failure'
@@ -170,8 +172,8 @@ def getChats(request, version):
                 return JsonResponse(response_data)
         else:
             response_data['status'] = "error"
-            response_data['message'] = "invalid request"   
-        return JsonResponse(response_data) 
+            response_data['message'] = "invalid request"
+        return JsonResponse(response_data)
     else:
         response_data['status'] = 'failure'
         response_data['message'] = 'API version does not exist'
@@ -188,8 +190,8 @@ def addData(request, version):
             response_data['data'] = d.id
         else:
             response_data['status'] = "error"
-            response_data['message'] = "invalid request"   
-        return JsonResponse(response_data) 
+            response_data['message'] = "invalid request"
+        return JsonResponse(response_data)
     else:
         response_data['status'] = 'failure'
         response_data['message'] = 'API version does not exist'
@@ -200,16 +202,50 @@ def getData(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "GET":
-            data = Data.objects.filter(patient_id = request.GET["id"])
+            data = Data.objects.filter(patient_id = request.GET["patient_id"])
+
             response_data['status'] = "success"
             response_data['data'] = list(data.values())
-            return JsonResponse(response_data) 
+            return JsonResponse(response_data)
         else:
             response_data['status'] = "error"
-            response_data['message'] = "invalid request"   
+            response_data['message'] = "invalid request"
         return JsonResponse(response_data)
     else:
         response_data['status'] = 'failure'
         response_data['message'] = 'API version does not exist'
         return JsonResponse(response_data)
 
+@csrf_exempt
+def analyzeECG(request, version):
+    response_data = {}
+    if version == 'v1':
+        if request.method == "GET":
+            data = hp.get_data(getECG(request.GET['id']))
+            print(data)
+            working_data, measures = hp.process(data, 100.0)
+            print(measures['bpm'])
+            print(measures['rmssd'])
+            print(measures)
+            hp.plotter(working_data, measures)
+            response_data['status'] = "error"
+            response_data['message'] = measures
+            return JsonResponse(response_data)
+        else:
+            response_data['status'] = "error"
+            response_data['message'] = "invalid request"
+            return JsonResponse(response_data)
+    else:
+        response_data['status'] = 'failure'
+        response_data['message'] = 'API version does not exist'
+        return JsonResponse(response_data)
+
+
+def getECG(data_id):
+    print(Data.objects.filter(id = data_id))
+    dataObject = Data.objects.filter(id = data_id)
+    url = dataObject.values('ecg_url')[0]['ecg_url']
+    timeStamp = dataObject.values('created')[0]['created']
+    patient_id = dataObject.values('patient_id')[0]['patient_id']
+    urllib.request.urlretrieve(url,"{}_{}.csv".format(patient_id,timeStamp))
+    return ("{}_{}.csv".format(patient_id,timeStamp))

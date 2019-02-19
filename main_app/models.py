@@ -3,16 +3,16 @@ from django.db import models
 class Doctor(models.Model):
     patients = models.CharField(max_length = 100, default = '') #comma separated id's
     first_name = models.CharField(max_length = 50, default = '')
-    last_name = models.CharField(max_length = 50, default = '') 
+    last_name = models.CharField(max_length = 50, default = '')
     email = models.EmailField(unique = True, default = '')
     password = models.CharField(max_length = 50, default = '')
-    age = models.IntegerField(default = 0)                   
-    experience = models.IntegerField(default = 0)            
-    qualification = models.TextField(default = '')            
+    age = models.IntegerField(default = 0)
+    experience = models.IntegerField(default = 0)
+    qualification = models.TextField(default = '')
     address = models.TextField(default = '')
-    number = models.IntegerField(default = 0)                
-    fees = models.IntegerField(default = 0)                  
-    gender = models.CharField(max_length = 50, default = '')    
+    number = models.IntegerField(default = 0)
+    fees = models.IntegerField(default = 0)
+    gender = models.CharField(max_length = 50, default = '')
 
     def __str__(self):
         return self.email
@@ -48,7 +48,7 @@ class Data(models.Model):
     temperature = models.DecimalField(max_digits = 5, decimal_places = 2, default = 0)
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
     class Meta:
         db_table = "data"
@@ -60,7 +60,7 @@ class Chat(models.Model):
     sender = models.IntegerField(default = 0)
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
     class Meta:
         db_table = "chat"
