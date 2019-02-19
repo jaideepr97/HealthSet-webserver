@@ -29,8 +29,8 @@ class Patient(models.Model):
     age = models.IntegerField(default = 0)
     gender = models.CharField(max_length = 6, default = '')
     blood_group = models.CharField(max_length = 3, default = '')
-    weight = models.IntegerField(default = 0)
-    height = models.IntegerField(default = 0)
+    weight = models.DecimalField(max_digits = 5, decimal_places = 2, default = 0)
+    height = models.DecimalField(max_digits = 5, decimal_places = 2, default = 0)
     diabetes = models.BooleanField(default = False)
     smoker = models.BooleanField(default = False)
     drinker = models.BooleanField(default = False)
@@ -40,6 +40,18 @@ class Patient(models.Model):
 
     class Meta:
         db_table = "patient"
+
+class Data(models.Model):
+    patient_id = models.IntegerField(default = 0)
+    created = models.DateTimeField(auto_now_add = True)
+    ecg_url = models.URLField(max_length = 200)
+    temperature = models.DecimalField(max_digits = 5, decimal_places = 2, default = 0)
+
+    def __str__(self):
+        return self.id
+
+    class Meta:
+        db_table = "data"
 
 class Chat(models.Model):
     doctor_id = models.IntegerField(default = 0)
