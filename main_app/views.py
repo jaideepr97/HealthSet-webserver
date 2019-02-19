@@ -228,7 +228,7 @@ def analyzeECG(request, version):
             print(measures['rmssd'])
             print(measures)
             hp.plotter(working_data, measures)
-            response_data['status'] = "error"
+            response_data['status'] = "success"
             response_data['message'] = measures
             return JsonResponse(response_data)
         else:
