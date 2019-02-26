@@ -12,6 +12,7 @@ import urllib.request
 import cv2
 from keras.applications.imagenet_utils import preprocess_input, decode_predictions
 from keras.models import load_model
+from . import model
 from keras.preprocessing import image
 import numpy as np
 import pandas as pd
@@ -47,17 +48,18 @@ def getPatient(request, version):
     if version == "v1":
         if request.method == "GET":
             patient_id = request.GET["patient_id"]
-            data = Patient.objects.filter(id = patient_id)
+            data = Patient.objects.get(id = patient_id)
             response_data['status'] = "success"
-            response_data['data'] = list(data.values())
+            data.__dict__.pop('_state')
+            response_data['data'] = data.__dict__
         else:
             response_data['status'] = "error"
             response_data['message'] = "invalid request"
-        return JsonResponse(response_data)
+        return JsonResponse(json.dumps(response_data), safe = False)
     else:
         response_data['status'] = 'failure'
         response_data['message'] = 'API version does not exist'
-        return JsonResponse(response_data)
+        return JsonResponse(json.dumps(response_data), safe = False)
 
 @csrf_exempt
 def getDoctor(request, version):
@@ -65,33 +67,44 @@ def getDoctor(request, version):
     if version == "v1":
         if request.method == "GET":
             doctor_id = request.GET["doctor_id"]
-            data = Doctor.objects.filter(id = doctor_id)
+            data = Doctor.objects.get(id = doctor_id)
             response_data['status'] = "success"
-            response_data['data'] = list(data.values())
+            data.__dict__.pop('_state')
+            response_data['data'] = data.__dict__
         else:
             response_data['status'] = "error"
             response_data['message'] = "invalid request"
-        return JsonResponse(response_data)
+        return JsonResponse(json.dumps(response_data), safe = False)
     else:
         response_data['status'] = 'failure'
         response_data['message'] = 'API version does not exist'
-        return JsonResponse(response_data)
+        return JsonResponse(json.dumps(response_data), safe = False)
 
 @csrf_exempt
 def addPatient(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "POST":
-            p = Patient(first_name = request.POST["first_name"], last_name = request.POST["last_name"], email = request.POST["email"], password = request.POST["password"], age = request.POST["age"], gender = request.POST["gender"], blood_group = request.POST["blood_group"], weight = request.POST["weight"], height = request.POST["height"], diabetes = request.POST["diabetes"], smoker = request.POST["smoker"], drinker = request.POST["drinker"])
-            try:
-                user = User.objects.create_user(username = request.POST["email"].split("@")[0], email = request.POST["email"], password = request.POST["password"], first_name = request.POST["first_name"], last_name = request.POST["last_name"])
-                user.save()
-                p.save()
-                response_data['status'] = "success"
-                response_data['data'] = p.id
-            except IntegrityError as e:
-                response_data['status'] = "error"
-                response_data['message'] = "account exists"
+            p = Patient(first_name = request.POST["first_name"], last_name = request.POST["last_name"], email = request.POST["email"], age = request.POST["age"], gender = request.POST["gender"], blood_group = request.POST["blood_group"], weight = request.POST["weight"], height = request.POST["height"], diabetes = request.POST["diabetes"], smoker = request.POST["smoker"], drinker = request.POST["drinker"])
+
+            # try:
+            user = User.objects.create_user(username = request.POST["email"].split("@")[0], email = request.POST["email"], password = request.POST["password"], first_name = request.POST["first_name"], last_name = request.POST["last_name"])
+            user.save()
+            p.save()
+
+            doctor_id = request.POST["doctor"]
+            doctor = Doctor.objects.get(id = doctor_id)
+            if(doctor.pending_requests != ''):
+                doctor.pending_requests = str(doctor.pending_requests) + "," + str(p.id)
+            else:
+                doctor.pending_requests = str(p.id)
+            doctor.save()
+
+            response_data['status'] = "success"
+            response_data['data'] = p.id
+            # except IntegrityError as e:
+            #     response_data['status'] = "error"
+            #     response_data['message'] = "account exists"
         else:
             response_data['status'] = "error"
             response_data['message'] = "invalid request"
@@ -106,7 +119,7 @@ def addDoctor(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "POST":
-            d = Doctor(first_name = request.POST["first_name"], last_name = request.POST["last_name"], email = request.POST["email"], password = request.POST["password"], age = request.POST["age"], gender = request.POST["gender"], experience = request.POST["experience"], qualification = request.POST["qualification"], address = request.POST["address"], number = request.POST["number"], fees = request.POST["fees"])
+            d = Doctor(first_name = request.POST["first_name"], last_name = request.POST["last_name"], email = request.POST["email"], age = request.POST["age"], gender = request.POST["gender"], experience = request.POST["experience"], qualification = request.POST["qualification"], address = request.POST["address"], number = request.POST["number"], fees = request.POST["fees"])
             try:
                 user = User.objects.create_user(username = request.POST["email"].split("@")[0], email = request.POST["email"], password = request.POST["password"], first_name = request.POST["first_name"], last_name = request.POST["last_name"])
                 user.save()
@@ -133,6 +146,61 @@ def getAllDoctors(request, version):
             data = Doctor.objects.all()
             response_data['status'] = "success"
             response_data['data'] = list(data.values())
+        else:
+            response_data['status'] = "error"
+            response_data['message'] = "invalid request"
+        return JsonResponse(response_data)
+    else:
+        response_data['status'] = 'failure'
+        response_data['message'] = 'API version does not exist'
+        return JsonResponse(response_data)
+
+@csrf_exempt
+def getAllPendingRequests(request, version):
+    response_data = {}
+    if version == 'v1':
+        if request.method == "GET":
+            doctor_id = request.GET["doctor_id"]
+            data = Doctor.objects.get(id = doctor_id).pending_requests.split(",")
+            patient_list = []
+            for patient_id in data:
+                patient = Patient.objects.get(id = patient_id)
+                patient.__dict__.pop('_state')
+                patient_list.append(patient.__dict__)
+            response_data['status'] = "success"
+            response_data['data'] = patient_list
+        else:
+            response_data['status'] = "error"
+            response_data['message'] = "invalid request"
+        print(response_data)
+        return JsonResponse(json.dumps(response_data), safe = False)
+    else:
+        response_data['status'] = 'failure'
+        response_data['message'] = 'API version does not exist'
+        return JsonResponse(json.dumps(response_data), safe = False)
+
+@csrf_exempt
+def acceptRequest(request, version):
+    response_data = {}
+    if version == 'v1':
+        if request.method == "POST":
+            doctor_id = request.POST["doctor_id"]
+            doctor= Doctor.objects.get(id = doctor_id)
+            pending_requests = doctor.pending_requests.split(',')
+            pending_requests.remove(request.POST["patient_id"])
+            doctor.pending_requests = ','.join(pending_requests)
+            if(doctor.patients != ''):
+                doctor.patients = str(doctor.patients) + "," + str(request.POST["patient_id"])
+            else:
+                doctor.patients = str(request.POST["patient_id"])
+            doctor.save()
+            patient_id = request.POST["patient_id"]
+            patient = Patient.objects.get(id = patient_id)
+            patient.doctor = str(request.POST["doctor_id"])
+            patient.save()
+            response_data['status'] = "success"
+            response_data['message'] = "request accepted"
+            return JsonResponse(response_data)
         else:
             response_data['status'] = "error"
             response_data['message'] = "invalid request"
@@ -252,7 +320,7 @@ def analyzeECG(request, version):
 
 
 def getECG(data_id):
-    print(Data.objects.filter(id = data_id))
+    # print(Data.objects.filter(id = data_id))
     dataObject = Data.objects.filter(id = data_id)
     url = dataObject.values('ecg_url')[0]['ecg_url']
     timeStamp = dataObject.values('created')[0]['created']
@@ -266,9 +334,9 @@ def predictArrhythmia(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "GET":
-            model = load_model('main_app/ecgScratchEpoch2.hdf5')
-            model._make_predict_function()          # Necessary
-            print('Model loaded. Start serving...')
+            # model = load_model('main_app/ecgScratchEpoch2.hdf5')
+            # model._make_predict_function()          # Necessary
+            # print('Model loaded. Start serving...')
             output = []
 
             APC, NORMAL, LBB, PVC, PAB, RBB, VEB = [], [], [], [], [], [], []
@@ -285,12 +353,15 @@ def predictArrhythmia(request, version):
             csv.columns = [' Sample Value']
             csv_data = csv[' Sample Value']
             data = np.array(csv_data)
-            print(data)
+            # print(data)
             signals = []
             count = 1
             peaks =  biosppy.signals.ecg.christov_segmenter(signal=data, sampling_rate = 100)[0]
+            # print(peaks)
             for i in (peaks[1:-1]):
+
                 diff1 = abs(peaks[count - 1] - i)
+                # print(diff1)
                 diff2 = abs(peaks[count + 1]- i)
                 x = peaks[count - 1] + diff1//2
                 y = peaks[count + 1] - diff2//2
@@ -307,6 +378,7 @@ def predictArrhythmia(request, version):
                 for spine in plt.gca().spines.values():
                     spine.set_visible(False)
 
+                plt.show()
                 filename = 'fig' + '.png'
                 fig.savefig(filename)
                 im_gray = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
