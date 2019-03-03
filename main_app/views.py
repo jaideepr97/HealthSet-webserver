@@ -295,6 +295,27 @@ def getData(request, version):
         return JsonResponse(response_data)
 
 @csrf_exempt
+def checkIfAccepted(request, version):
+    response_data = {}
+    if version == 'v1':
+        if request.method == "GET":
+            doctor = Patient.objects.get(id = request.GET["patient_id"]).doctor
+            if(doctor != ''):
+                response_data['accepted'] = "yes"
+            else:
+                response_data['accepted'] = "no"
+            response_data['status'] = "success"
+            return JsonResponse(response_data)
+        else:
+            response_data['status'] = "error"
+            response_data['message'] = "invalid request"
+        return JsonResponse(response_data)
+    else:
+        response_data['status'] = 'failure'
+        response_data['message'] = 'API version does not exist'
+        return JsonResponse(response_data)
+
+@csrf_exempt
 def analyzeECG(request, version):
     response_data = {}
     if version == 'v1':
@@ -317,7 +338,6 @@ def analyzeECG(request, version):
         response_data['status'] = 'failure'
         response_data['message'] = 'API version does not exist'
         return JsonResponse(response_data)
-
 
 def getECG(data_id):
     # print(Data.objects.filter(id = data_id))
