@@ -398,7 +398,7 @@ def predictArrhythmia(request, version):
                 for spine in plt.gca().spines.values():
                     spine.set_visible(False)
 
-                plt.show()
+                # plt.show()
                 filename = 'fig' + '.png'
                 fig.savefig(filename)
                 im_gray = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
