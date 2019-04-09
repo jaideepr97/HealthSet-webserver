@@ -1,8 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import generics
-from rest_framework.parsers import JSONParser
 from .models import Patient, Doctor, Chat, Data
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
@@ -47,7 +45,8 @@ def getPatient(request, version):
     response_data = {}
     if version == "v1":
         if request.method == "GET":
-            patient_id = request.GET["patient_id"]
+            patient_id = request.GET.get("patient_id")
+            print(patient_id)
             data = Patient.objects.get(id = patient_id)
             response_data['status'] = "success"
             data.__dict__.pop('_state')
@@ -66,7 +65,7 @@ def getDoctor(request, version):
     response_data = {}
     if version == "v1":
         if request.method == "GET":
-            doctor_id = request.GET["doctor_id"]
+            doctor_id = request.GET.get("doctor_id")
             data = Doctor.objects.get(id = doctor_id)
             response_data['status'] = "success"
             data.__dict__.pop('_state')
@@ -85,26 +84,26 @@ def addPatient(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "POST":
-            p = Patient(first_name = request.POST["first_name"], last_name = request.POST["last_name"], email = request.POST["email"], age = request.POST["age"], gender = request.POST["gender"], blood_group = request.POST["blood_group"], weight = request.POST["weight"], height = request.POST["height"], diabetes = request.POST["diabetes"], smoker = request.POST["smoker"], drinker = request.POST["drinker"])
+            p = Patient(first_name = request.POST.get("first_name"), last_name = request.POST.get("last_name"), email = request.POST.get("email"), age = request.POST.get("age"), gender = request.POST.get("gender"), blood_group = request.POST.get("blood_group"), weight = request.POST.get("weight"), height = request.POST.get("height"), diabetes = request.POST.get("diabetes"), smoker = request.POST.get("smoker"), drinker = request.POST.get("drinker"))
 
-            # try:
-            user = User.objects.create_user(username = request.POST["email"].split("@")[0], email = request.POST["email"], password = request.POST["password"], first_name = request.POST["first_name"], last_name = request.POST["last_name"])
-            user.save()
-            p.save()
+            try:
+                user = User.objects.create_user(username = request.POST.get("email").split("@")[0], email = request.POST.get("email"), password = request.POST.get("password"), first_name = request.POST.get("first_name"), last_name = request.POST.get("last_name"))
+                user.save()
+                p.save()
 
-            doctor_id = request.POST["doctor"]
-            doctor = Doctor.objects.get(id = doctor_id)
-            if(doctor.pending_requests != ''):
-                doctor.pending_requests = str(doctor.pending_requests) + "," + str(p.id)
-            else:
-                doctor.pending_requests = str(p.id)
-            doctor.save()
+                doctor_id = request.POST.get("doctor")
+                doctor = Doctor.objects.get(id = doctor_id)
+                if(doctor.pending_requests != ''):
+                    doctor.pending_requests = str(doctor.pending_requests) + "," + str(p.id)
+                else:
+                    doctor.pending_requests = str(p.id)
+                doctor.save()
 
-            response_data['status'] = "success"
-            response_data['data'] = p.id
-            # except IntegrityError as e:
-            #     response_data['status'] = "error"
-            #     response_data['message'] = "account exists"
+                response_data['status'] = "success"
+                response_data['data'] = p.id
+            except IntegrityError as e:
+                response_data['status'] = "error"
+                response_data['message'] = "account exists"
         else:
             response_data['status'] = "error"
             response_data['message'] = "invalid request"
@@ -119,9 +118,9 @@ def addDoctor(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "POST":
-            d = Doctor(first_name = request.POST["first_name"], last_name = request.POST["last_name"], email = request.POST["email"], age = request.POST["age"], gender = request.POST["gender"], experience = request.POST["experience"], qualification = request.POST["qualification"], address = request.POST["address"], number = request.POST["number"], fees = request.POST["fees"])
+            d = Doctor(first_name = request.POST.get("first_name"), last_name = request.POST.get("last_name"), email = request.POST.get("email"), age = request.POST.get("age"), gender = request.POST.get("gender"), experience = request.POST.get("experience"), qualification = request.POST.get("qualification"), address = request.POST.get("address"), number = request.POST.get("number"), fees = request.POST.get("fees"))
             try:
-                user = User.objects.create_user(username = request.POST["email"].split("@")[0], email = request.POST["email"], password = request.POST["password"], first_name = request.POST["first_name"], last_name = request.POST["last_name"])
+                user = User.objects.create_user(username = request.POST.get("email").split("@")[0], email = request.POST.get("email"), password = request.POST.get("password"), first_name = request.POST.get("first_name"), last_name = request.POST.get("last_name"))
                 user.save()
                 d.save()
                 response_data['status'] = "success"
@@ -160,7 +159,7 @@ def getAllPendingRequests(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "GET":
-            doctor_id = request.GET["doctor_id"]
+            doctor_id = request.GET.get("doctor_id")
             data = Doctor.objects.get(id = doctor_id).pending_requests.split(",")
             patient_list = []
             for patient_id in data:
@@ -184,19 +183,19 @@ def acceptRequest(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "POST":
-            doctor_id = request.POST["doctor_id"]
+            doctor_id = request.POST.get("doctor_id")
             doctor= Doctor.objects.get(id = doctor_id)
             pending_requests = doctor.pending_requests.split(',')
-            pending_requests.remove(request.POST["patient_id"])
+            pending_requests.remove(request.POST.get("patient_id"))
             doctor.pending_requests = ','.join(pending_requests)
             if(doctor.patients != ''):
-                doctor.patients = str(doctor.patients) + "," + str(request.POST["patient_id"])
+                doctor.patients = str(doctor.patients) + "," + str(request.POST.get("patient_id"))
             else:
-                doctor.patients = str(request.POST["patient_id"])
+                doctor.patients = str(request.POST.get("patient_id"))
             doctor.save()
-            patient_id = request.POST["patient_id"]
+            patient_id = request.POST.get("patient_id")
             patient = Patient.objects.get(id = patient_id)
-            patient.doctor = str(request.POST["doctor_id"])
+            patient.doctor = str(request.POST.get("doctor_id"))
             patient.save()
             response_data['status'] = "success"
             response_data['message'] = "request accepted"
@@ -215,7 +214,7 @@ def addChat(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "POST":
-            c = Chat(doctor_id = request.POST["doctor_id"], patient_id = request.POST["patient_id"], text = request.POST["text"], sender = request.POST["sender"])
+            c = Chat(doctor_id = request.POST.get("doctor_id"), patient_id = request.POST.get("patient_id"), text = request.POST.get("text"), sender = request.POST.get("sender"))
             c.save()
             response_data['status'] = "success"
             response_data['data'] = c.id
@@ -233,13 +232,13 @@ def getChats(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "GET":
-            if request.GET["user_type"] == "doctor":
-                data = Chat.objects.filter(doctor_id = request.GET["id"])
+            if request.GET.get("user_type") == "doctor":
+                data = Chat.objects.filter(doctor_id = request.GET.get("id"))
                 response_data['status'] = "success"
                 response_data['data'] = list(data.values())
                 return JsonResponse(response_data)
-            elif request.GET["user_type"] == "patient":
-                data = Chat.objects.filter(patient_id = request.GET["id"])
+            elif request.GET.get("user_type") == "patient":
+                data = Chat.objects.filter(patient_id = request.GET.get("id"))
                 response_data['status'] = "success"
                 response_data['data'] = list(data.values())
                 return JsonResponse(response_data)
@@ -262,7 +261,7 @@ def addData(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "POST":
-            d = Data(patient_id = request.POST["patient_id"], created = request.POST["created"], ecg_url = request.POST["ecg_url"], temperature = request.POST["temperature"])
+            d = Data(patient_id = request.POST.get("patient_id"), created = request.POST.get("created"), ecg_url = request.POST.get("ecg_url"), temperature = request.POST.get("temperature"))
             d.save()
             response_data['status'] = "success"
             response_data['data'] = d.id
@@ -280,7 +279,7 @@ def getData(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "GET":
-            data = Data.objects.filter(patient_id = request.GET["patient_id"])
+            data = Data.objects.filter(patient_id = request.GET.get("patient_id"))
 
             response_data['status'] = "success"
             response_data['data'] = list(data.values())
@@ -299,7 +298,7 @@ def checkIfAccepted(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "GET":
-            doctor = Patient.objects.get(id = request.GET["patient_id"]).doctor
+            doctor = Patient.objects.get(id = request.GET.get("patient_id")).doctor
             if(doctor != ''):
                 response_data['accepted'] = "yes"
             else:
@@ -320,8 +319,11 @@ def analyzeECG(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "GET":
-            data = hp.get_data(getECG(request.GET['id']))
+            path = getECG(request.GET.get('id'))
+            data = hp.get_data(path)
+            deletefile(path)
             print(data)
+
             working_data, measures = hp.process(data, 100.0)
             print(measures['bpm'])
             print(measures['rmssd'])
@@ -348,6 +350,9 @@ def getECG(data_id):
     urllib.request.urlretrieve(url,"{}_{}.csv".format(patient_id,timeStamp))
     return ("{}_{}.csv".format(patient_id,timeStamp))
 
+def deletefile(path):
+	os.remove(path)
+
 @csrf_exempt
 def predictArrhythmia(request, version):
     flag = 1
@@ -360,7 +365,8 @@ def predictArrhythmia(request, version):
             output = []
 
             APC, NORMAL, LBB, PVC, PAB, RBB, VEB = [], [], [], [], [], [], []
-            path = getECG(request.GET['id'])
+
+            path = getECG(request.GET.get('id'))
             # path = "main_app/arrhythmia.csv"
             output.append(str(path))
             result = {"APC": APC, "Normal": NORMAL, "LBB": LBB, "PAB": PAB, "PVC": PVC, "RBB": RBB, "VEB": VEB}
@@ -370,6 +376,7 @@ def predictArrhythmia(request, version):
 
             kernel = np.ones((4,4),np.uint8)
             csv = pd.read_csv(path)
+            deletefile(path)
             csv.columns = [' Sample Value']
             csv_data = csv[' Sample Value']
             data = np.array(csv_data)
