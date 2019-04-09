@@ -118,6 +118,8 @@ def addDoctor(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "POST":
+            print(request.POST.get("password"))
+            print(request.POST.get("email"))
             d = Doctor(first_name = request.POST.get("first_name"), last_name = request.POST.get("last_name"), email = request.POST.get("email"), age = request.POST.get("age"), gender = request.POST.get("gender"), experience = request.POST.get("experience"), qualification = request.POST.get("qualification"), address = request.POST.get("address"), number = request.POST.get("number"), fees = request.POST.get("fees"))
             try:
                 user = User.objects.create_user(username = request.POST.get("email").split("@")[0], email = request.POST.get("email"), password = request.POST.get("password"), first_name = request.POST.get("first_name"), last_name = request.POST.get("last_name"))
@@ -153,6 +155,29 @@ def getAllDoctors(request, version):
         response_data['status'] = 'failure'
         response_data['message'] = 'API version does not exist'
         return JsonResponse(response_data)
+
+@csrf_exempt
+def getMyPatients(request, version):
+    response_data = {}
+    if version  == 'v1':
+        if request.method == 'GET':
+            doctor_id = request.GET.get("doctor_id")
+            data = Doctor.objects.get(id = doctor_id)
+            patient_ids = data.__dict__.get('patients').split(',')
+            patients = []
+            for patient in Patient.objects.filter(id__in = patient_ids):
+                patient.__dict__.pop('_state')
+                patients.append(patient.__dict__)
+            response_data['status'] = "success"
+            response_data['data'] = patients
+        else:
+            response_data['status'] = "error"
+            response_data['message'] = "invalid request"
+        return JsonResponse(response_data)
+    else:
+        response_data['status'] = 'failure'
+        response_data['message'] = 'API version does not exist'
+        return JsonResponse(response_data) 
 
 @csrf_exempt
 def getAllPendingRequests(request, version):
