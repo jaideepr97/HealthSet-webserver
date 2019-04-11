@@ -18,16 +18,25 @@ import json
 import os
 import biosppy
 import matplotlib.pyplot as plt
+from django.core.files.storage import FileSystemStorage
+from django.views.static import serve
 
 @csrf_exempt
 def authenticateUser(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == 'POST':
-            print(request.POST.get('username'))
-            user = authenticate(username = request.POST.get('username'), password = request.POST.get('password'))
+            user = authenticate(username = request.POST.get("email").split("@")[0], password = request.POST.get('password'))
             if user is not None:
-                response_data['status'] = 'success'
+                response_data['status'] = 'success' 
+                if request.POST.get('type') == 'doctor':
+                    doctor = Doctor.objects.get(email = request.POST.get("email"))
+                    doctor_id = doctor.id 
+                    response_data['id'] = doctor_id
+                elif request.POST.get('type') == 'patient':
+                    patient = Patient.objects.get(email = request.POST.get("email"))
+                    patient_id = patient.id 
+                    response_data['id'] = patient_id    
             else:
                 response_data['status'] = 'failure'
             return JsonResponse(response_data, safe = False)
@@ -287,9 +296,14 @@ def getChats(request, version):
 def addData(request, version):
     response_data = {}
     if version == 'v1':
-        if request.method == "POST":
-            d = Data(patient_id = request.POST.get("patient_id"), created = request.POST.get("created"), ecg_url = request.POST.get("ecg_url"), temperature = request.POST.get("temperature"))
+        if request.method == "POST" and request.FILES['myData']:
+            myfile = request.FILES.get('myData')
+            fs = FileSystemStorage(location='data/{}/{}/'.format(request.POST.get("patient_id"), request.POST.get("timestamp").replace(' ', '_').replace('+', '_')))
+            filename = fs.save(myfile.name, myfile)
+            # uploaded_file_url = fs.url(filename)
+            d = Data(patient_id = request.POST.get("patient_id"), created = request.POST.get("timestamp"), ecg_url = 'data/{}/{}/{}'.format(request.POST.get("patient_id"), request.POST.get("timestamp"), filename))
             d.save()
+
             response_data['status'] = "success"
             response_data['data'] = d.id
         else:
@@ -311,6 +325,30 @@ def getData(request, version):
             response_data['status'] = "success"
             response_data['data'] = list(data.values())
             return JsonResponse(response_data)
+        else:
+            response_data['status'] = "error"
+            response_data['message'] = "invalid request"
+        return JsonResponse(response_data)
+    else:
+        response_data['status'] = 'failure'
+        response_data['message'] = 'API version does not exist'
+        return JsonResponse(response_data)
+
+@csrf_exempt
+def getFile(request, version):
+    response_data = {}
+    if version == 'v1':
+        if request.method == "GET":
+            patient_id = request.GET['patient_id']
+            timestamp = '_'.join(request.GET["timestamp"].split(' '))
+            ecg_url = 'data/{}/{}/file.txt'.format(patient_id, timestamp)
+
+            f = open(ecg_url, "r")
+            content = f.read()
+            response = HttpResponse(content, content_type='text/plain')
+            response['Content-Disposition'] = 'attachment; filename={0}'.format("file.txt")
+            
+            return response
         else:
             response_data['status'] = "error"
             response_data['message'] = "invalid request"
@@ -346,9 +384,8 @@ def analyzeECG(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "GET":
-            path = getECG(request.GET.get('id'))
+            path = getECG(request.GET.get('id'), 0)
             data = hp.get_data(path)
-            deletefile(path)
             print(data)
 
             working_data, measures = hp.process(data, 100.0)
@@ -368,17 +405,17 @@ def analyzeECG(request, version):
         response_data['message'] = 'API version does not exist'
         return JsonResponse(response_data)
 
-def getECG(data_id):
+def getECG(data_id, flag):
     # print(Data.objects.filter(id = data_id))
     dataObject = Data.objects.filter(id = data_id)
     url = dataObject.values('ecg_url')[0]['ecg_url']
-    timeStamp = dataObject.values('created')[0]['created']
-    patient_id = dataObject.values('patient_id')[0]['patient_id']
-    urllib.request.urlretrieve(url,"{}_{}.csv".format(patient_id,timeStamp))
-    return ("{}_{}.csv".format(patient_id,timeStamp))
-
-def deletefile(path):
-	os.remove(path)
+    if flag == 0:
+        return url.replace(' ', '_').replace('+', '_')
+    else:
+        list1 = url.replace(' ', '_').replace('+', '_').split('/')
+        list1.pop()
+        print(list1)
+        return '/'.join(list1)
 
 @csrf_exempt
 def predictArrhythmia(request, version):
@@ -393,7 +430,7 @@ def predictArrhythmia(request, version):
 
             APC, NORMAL, LBB, PVC, PAB, RBB, VEB = [], [], [], [], [], [], []
 
-            path = getECG(request.GET.get('id'))
+            path = getECG(request.GET.get('id'), 1)
             # path = "main_app/arrhythmia.csv"
             output.append(str(path))
             result = {"APC": APC, "Normal": NORMAL, "LBB": LBB, "PAB": PAB, "PVC": PVC, "RBB": RBB, "VEB": VEB}
@@ -402,8 +439,11 @@ def predictArrhythmia(request, version):
             indices = []
 
             kernel = np.ones((4,4),np.uint8)
-            csv = pd.read_csv(path)
-            deletefile(path)
+
+            print(path)
+            os.chdir(path)
+            print(os.getcwd())
+            csv = pd.read_csv('/home/jaideeprao/Desktop/web_server/data/1/2019-02-19_11:29:50.856072_00:00/file.txt')
             csv.columns = [' Sample Value']
             csv_data = csv[' Sample Value']
             data = np.array(csv_data)

@@ -45,7 +45,7 @@ class Patient(models.Model):
 
 class Data(models.Model):
     patient_id = models.IntegerField(default = 0)
-    created = models.DateTimeField(auto_now_add = True)
+    created = models.DateTimeField()
     ecg_url = models.URLField(max_length = 200)
     temperature = models.DecimalField(max_digits = 5, decimal_places = 2, default = 0)
 
