@@ -19,7 +19,7 @@ import os
 import biosppy
 import matplotlib.pyplot as plt
 from django.core.files.storage import FileSystemStorage
-from django.views.static import serve
+from math import isnan
 
 @csrf_exempt
 def authenticateUser(request, version):
@@ -296,7 +296,11 @@ def getChats(request, version):
 def addData(request, version):
     response_data = {}
     if version == 'v1':
-        if request.method == "POST" and request.FILES['myData']:
+        print(request.POST.get("patient_id"))
+        print(request.POST.get("timestamp"))
+        print(request.FILES.get('myData'))
+        if request.method == "POST" and request.FILES.get('myData'):
+            print("HMMMMM")
             myfile = request.FILES.get('myData')
             fs = FileSystemStorage(location='data/{}/{}/'.format(request.POST.get("patient_id"), request.POST.get("timestamp").replace(' ', '_').replace('+', '_')))
             filename = fs.save(myfile.name, myfile)
@@ -386,15 +390,17 @@ def analyzeECG(request, version):
         if request.method == "GET":
             path = getECG(request.GET.get('id'), 0)
             data = hp.get_data(path)
-            print(data)
+            # print(data)
 
             working_data, measures = hp.process(data, 100.0)
-            print(measures['bpm'])
-            print(measures['rmssd'])
-            print(measures)
-            hp.plotter(working_data, measures)
+            clean_dict = {k: measures[k] for k in measures if not isnan(measures[k])}
+            # print(measures['bpm'])
+            # print(measures['rmssd'])
+            # print(measures)
+            # hp.plotter(working_data, measures)
             response_data['status'] = "success"
-            response_data['message'] = measures
+            response_data['data'] = clean_dict
+            print(type(clean_dict))
             return JsonResponse(response_data)
         else:
             response_data['status'] = "error"
@@ -443,10 +449,19 @@ def predictArrhythmia(request, version):
             print(path)
             os.chdir(path)
             print(os.getcwd())
-            csv = pd.read_csv('/home/jaideeprao/Desktop/web_server/data/1/2019-02-19_11:29:50.856072_00:00/file.txt')
+            csv = pd.read_csv('file.txt', header = None)
+
+            # print(csv)
+            # print(csv.shape)
+            csv = csv.transpose()
+            # print(csv)
+            # print(csv.shape)
+            
             csv.columns = [' Sample Value']
             csv_data = csv[' Sample Value']
+            
             data = np.array(csv_data)
+            
             # print(data)
             signals = []
             count = 1
