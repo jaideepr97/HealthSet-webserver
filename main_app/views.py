@@ -84,6 +84,7 @@ def addPatient(request, version):
     response_data = {}
     if version == 'v1':
         if request.method == "POST":
+            print(request.POST.get("doctor"))
             p = Patient(first_name = request.POST.get("first_name"), last_name = request.POST.get("last_name"), email = request.POST.get("email"), age = request.POST.get("age"), gender = request.POST.get("gender"), blood_group = request.POST.get("blood_group"), weight = request.POST.get("weight"), height = request.POST.get("height"), diabetes = request.POST.get("diabetes"), smoker = request.POST.get("smoker"), drinker = request.POST.get("drinker"))
 
             try:
@@ -185,6 +186,7 @@ def getAllPendingRequests(request, version):
     if version == 'v1':
         if request.method == "GET":
             doctor_id = request.GET.get("doctor_id")
+            print(doctor_id)
             data = Doctor.objects.get(id = doctor_id).pending_requests.split(",")
             patient_list = []
             for patient_id in data:
@@ -197,7 +199,7 @@ def getAllPendingRequests(request, version):
             response_data['status'] = "error"
             response_data['message'] = "invalid request"
         print(response_data)
-        return JsonResponse(json.dumps(response_data), safe = False)
+        return JsonResponse(response_data)
     else:
         response_data['status'] = 'failure'
         response_data['message'] = 'API version does not exist'

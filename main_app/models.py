@@ -23,7 +23,7 @@ class Doctor(models.Model):
         db_table = "doctor"
 
 class Patient(models.Model):
-    doctor = models.CharField(max_length = 100, default = '') #single value
+    doctor = models.CharField(max_length = 100, default = '', null = True) #single value
     first_name = models.CharField(max_length = 50, default = '')
     last_name = models.CharField(max_length = 50, default = '')
     email = models.EmailField(unique = True, default = '')
