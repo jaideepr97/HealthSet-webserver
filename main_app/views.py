@@ -300,6 +300,7 @@ def addData(request, version):
         print(request.POST.get("timestamp"))
         print(request.FILES.get('myData'))
         if request.method == "POST" and request.FILES.get('myData'):
+            os.chdir("/home/jaideeprao/Desktop/web_server/")
             print("HMMMMM")
             myfile = request.FILES.get('myData')
             fs = FileSystemStorage(location='data/{}/{}/'.format(request.POST.get("patient_id"), request.POST.get("timestamp").replace(' ', '_').replace('+', '_')))
@@ -346,7 +347,8 @@ def getFile(request, version):
             patient_id = request.GET['patient_id']
             timestamp = '_'.join(request.GET["timestamp"].split(' '))
             ecg_url = 'data/{}/{}/file.txt'.format(patient_id, timestamp)
-
+            os.chdir("/home/jaideeprao/Desktop/web_server/")
+            print(os.getcwd())
             f = open(ecg_url, "r")
             content = f.read()
             response = HttpResponse(content, content_type='text/plain')
