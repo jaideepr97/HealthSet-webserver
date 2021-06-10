@@ -3,7 +3,7 @@ astor==0.7.1
 bidict==0.18.0
 biosppy==0.6.1
 cycler==0.10.0
-Django==2.0.8
+Django==2.2.24
 djangorestframework==3.8.2
 gast==0.2.2
 grpcio==1.19.0
